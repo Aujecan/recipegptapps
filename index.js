@@ -1,33 +1,27 @@
+// index.js
 const express = require('express');
+const cors = require('cors');
+const passport = require('./passport');
+const router = require('./router');
+
 const app = express();
 const port = 3000;
-const cors = require('cors');
 
-// Enable CORS for all routes
+// Middleware
+app.use(express.json());
 app.use(cors());
 
-// Import the loginUser function from auth.js
-const { loginUser } = require('./auth');
+// Initialize Passport
+app.use(passport.initialize());
 
-
-// Define the login route
-app.use(express.json());
-app.post('/login', (req, res) => {
-
-  console.log(req)
-  const { email, password } = req.body; // Assuming username and password are sent in the request body
-
-  const loginResult = loginUser(email, password);
-
-  if (loginResult.success) {
-    // Login successful
-    res.status(200).json({ message: "Login successful" });
-  } else {
-    // Login failed
-    res.status(401).json({ message: "Login failed" });
-  }
+// Protected route
+app.get('/protected', passport.authenticate('jwt', { session: false }), (req, res) => {
+res.json({ message: 'Protected route accessed!' });
 });
 
+// Routes
+app.use(router);
+
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+console.log(`Server is running on port ${port}`);
 });
